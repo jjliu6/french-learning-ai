@@ -1,7 +1,6 @@
 import streamlit as st
 from datetime import datetime
 import openai
-import random
 
 # Initialize session state for storing content and OpenAI key
 if 'content_database' not in st.session_state:
@@ -162,7 +161,6 @@ else:  # Learn
                                 st.write(f"**{question['question']}**")
                                 user_answer = st.text_input("Your answer (in French):", key=f"q_{i}")
                                 if st.button("Check Answer", key=f"check_q_{i}"):
-                                    # Simple string matching for now
                                     if user_answer.lower() == question['answer'].lower():
                                         st.success("Correct! 🎉")
                                     else:
