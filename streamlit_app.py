@@ -68,8 +68,39 @@ def generate_vocab_and_questions(text, difficulty):
         st.error(f"Error generating content: {str(e)}")
         return None, None
 
-# Your existing Add Content and Knowledge Base code here...
-[previous code for these sections remains the same]
+if page == "Add Content":
+    st.header("Add New Content")
+    
+    content = st.text_area("Enter text in any language:", height=150)
+    source_language = st.selectbox("Content Language", ["English", "Chinese", "French", "Other"])
+    tags = st.text_input("Add tags (comma-separated):")
+    
+    if st.button("Save Content"):
+        if content:
+            new_entry = {
+                "id": len(st.session_state.content_database),
+                "content": content,
+                "language": source_language,
+                "tags": [tag.strip() for tag in tags.split(",") if tag],
+                "date_added": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            st.session_state.content_database.append(new_entry)
+            st.success("Content saved successfully!")
+        else:
+            st.error("Please enter some content")
+
+elif page == "My Knowledge Base":
+    st.header("My Saved Content")
+    
+    if not st.session_state.content_database:
+        st.info("No content saved yet. Add some content to get started!")
+    
+    for item in st.session_state.content_database:
+        with st.expander(f"{item['content'][:50]}... ({item['language']})"):
+            st.write(f"**Full Content:** {item['content']}")
+            st.write(f"**Language:** {item['language']}")
+            st.write(f"**Tags:** {', '.join(item['tags'])}")
+            st.write(f"**Added:** {item['date_added']}")
 
 else:  # Learn
     st.header("Learning Zone")
