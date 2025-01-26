@@ -1,69 +1,44 @@
-def generate_vocab_and_questions(text, difficulty):
-    """Generate vocabulary and questions using OpenAI API"""
-    if not st.session_state.openai_key:
-        return None, None
+import streamlit as st
+import openai
+from datetime import datetime
+
+# Initialize session state
+if 'content_database' not in st.session_state:
+    st.session_state.content_database = []
+
+st.title("French Learning AI")
+
+# Simple navigation
+page = st.sidebar.selectbox("Choose a feature", ["Add Content", "My Knowledge Base", "Learn"])
+
+if page == "Add Content":
+    st.header("Add New Content")
+    content = st.text_area("Enter text in any language:", height=150)
+    source_language = st.selectbox("Content Language", ["English", "Chinese", "French", "Other"])
     
-    try:
-        # Prompt for vocabulary
-        vocab_prompt = f"""
-        From this text: "{text}"
-        Extract 5 key French words or phrases (if difficulty is {difficulty}/5, adjust complexity accordingly).
-        For each word/phrase provide:
-        1. The word/phrase in French
-        2. Its English translation
-        3. A simple example sentence in French
-        Return the response in this exact format:
-        [
-            {{"word": "french_word1", "translation": "english1", "example": "french_example1"}},
-            {{"word": "french_word2", "translation": "english2", "example": "french_example2"}},
-            ...
-        ]
-        """
-        
-        vocab_response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": vocab_prompt}],
-            temperature=0.7
-        )
-        
-        try:
-            vocab_list = eval(vocab_response.choices[0].message.content.strip())
-        except:
-            st.error("Error parsing vocabulary response")
-            vocab_list = [
-                {"word": "example", "translation": "exemple", "example": "C'est un exemple."}
-            ]
-        
-        # Prompt for comprehension questions
-        questions_prompt = f"""
-        From this text: "{text}"
-        Create 3 comprehension questions in French (adjust for difficulty level {difficulty}/5).
-        For each question provide:
-        1. The question in French
-        2. The correct answer in French
-        Return the response in this exact format:
-        [
-            {{"question": "french_question1", "answer": "french_answer1"}},
-            {{"question": "french_question2", "answer": "french_answer2"}},
-            {{"question": "french_question3", "answer": "french_answer3"}}
-        ]
-        """
-        
-        questions_response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": questions_prompt}],
-            temperature=0.7
-        )
-        
-        try:
-            questions_list = eval(questions_response.choices[0].message.content.strip())
-        except:
-            st.error("Error parsing questions response")
-            questions_list = [
-                {"question": "Comment allez-vous?", "answer": "Je vais bien."}
-            ]
-        
-        return vocab_list, questions_list
-    except Exception as e:
-        st.error(f"Error generating content: {str(e)}")
-        return None, None
+    if st.button("Save Content"):
+        if content:
+            new_entry = {
+                "content": content,
+                "language": source_language,
+                "date_added": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            st.session_state.content_database.append(new_entry)
+            st.success("Content saved successfully!")
+        else:
+            st.error("Please enter some content")
+
+elif page == "My Knowledge Base":
+    st.header("My Saved Content")
+    
+    if not st.session_state.content_database:
+        st.info("No content saved yet. Add some content to get started!")
+    
+    for item in st.session_state.content_database:
+        with st.expander(f"Content in {item['language']}"):
+            st.write(f"**Content:** {item['content']}")
+            st.write(f"**Added:** {item['date_added']}")
+
+else:  # Learn
+    st.header("Learning Zone")
+    st.info("AI features coming soon!")
